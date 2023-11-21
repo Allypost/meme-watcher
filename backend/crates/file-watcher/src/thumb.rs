@@ -11,16 +11,13 @@ use image::{io::Reader as ImageReader, DynamicImage, GenericImageView};
 use sea_orm::{prelude::*, Condition, Set};
 use serde::{Deserialize, Serialize};
 use tempfile::Builder as TempfileBuilder;
-use tokio::{fs, process::Command, task};
+use tokio::{process::Command, task};
 use tracing::instrument;
 use which::which;
 
 use crate::{
     file_metadata::FileMetadata,
-    helpers::{
-        date::parse_db_date,
-        file::{file_hash, relative_to_meta_dir},
-    },
+    helpers::{date::parse_db_date, file::file_hash},
     FileWatcher,
 };
 
@@ -55,8 +52,6 @@ impl From<ThumbGenerateResult> for FileThumbMeta {
         }
     }
 }
-
-pub const THUMBNAIL_DIRECTORY: &str = "thumbs";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ThumbDimensions {
@@ -141,7 +136,7 @@ impl FileWatcher {
 
             let meta: FileThumbMeta = serde_json::from_str(&db_file_thumb.meta)?;
 
-            let path = CONFIG.app.metadata_directory.join(&db_file_thumb.value);
+            let path = CONFIG.app.metadata_directory_absolute(&db_file_thumb.value);
 
             if path.exists() {
                 return Ok(FileThumb {
@@ -165,7 +160,7 @@ impl FileWatcher {
             }
         };
 
-        let file_path = CONFIG.app.directory.join(&db_file.path);
+        let file_path = CONFIG.app.directory_absolute(&db_file.path);
         let file_meta: FileMetadata = db_file_meta.try_into()?;
         let file_type = file_meta.file_type.unwrap_or_default();
 
@@ -182,14 +177,6 @@ impl FileWatcher {
         size: impl Into<ThumbSize> + Debug,
     ) -> Result<FileThumb> {
         logger::trace!("Generating thumb");
-
-        {
-            let thumbs_dir = CONFIG.app.metadata_directory.join(THUMBNAIL_DIRECTORY);
-            if !thumbs_dir.exists() {
-                logger::debug!(dir = ?thumbs_dir, "Creating thumbs dir");
-                fs::create_dir_all(&thumbs_dir).await?;
-            }
-        }
 
         let size = size.into();
         let thumb_key = size.to_string();
@@ -208,6 +195,8 @@ impl FileWatcher {
                 bail!("Unsupported file type");
             }
         };
+
+        logger::trace!(thumb = ?thumb_meta, "Generated thumb");
 
         let thumb_path = thumb_meta.path.clone();
         let meta: FileThumbMeta = thumb_meta.into();
@@ -238,8 +227,7 @@ impl FileWatcher {
         image_ulid: &str,
         dimensions: ThumbDimensions,
     ) -> Result<ThumbGenerateResult> {
-        let thumbs_dir = CONFIG.app.metadata_directory.join(THUMBNAIL_DIRECTORY);
-        let thumb_path = thumbs_dir.join(format!(
+        let thumb_path = CONFIG.app.thumbs_directory().join(format!(
             "{id}.{w}x{h}.jpeg",
             id = image_ulid,
             w = dimensions.width,
@@ -288,7 +276,7 @@ impl FileWatcher {
             width: thumb_width,
             height: thumb_height,
             hash: thumb_hash,
-            path: relative_to_meta_dir(&thumb_path)?.into(),
+            path: CONFIG.app.metadata_directory_relative(&thumb_path)?.into(),
         })
     }
 

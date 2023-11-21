@@ -53,7 +53,7 @@ impl FileWatcher {
 
         logger::debug!("Missing file metadata. Generating...");
 
-        let file_path = CONFIG.app.directory.join(db_file.path);
+        let file_path = CONFIG.app.directory_absolute(&db_file.path);
 
         let file_type = match infer_file_type(&file_path) {
             Ok(x) => Some(x),

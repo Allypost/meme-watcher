@@ -30,8 +30,7 @@ pub async fn serve_file(
         None => return Err(Status::NotFound),
     };
 
-    let base_path = &CONFIG.app.directory;
-    let file_path = base_path.join(&db_file.path);
+    let file_path = CONFIG.app.directory_absolute(&db_file.path);
 
     let mut responder = RangeResponder::from_path(&file_path).await.map_err(|e| {
         logger::error!(err = ?e, "Failed to open file");
@@ -114,7 +113,9 @@ pub async fn get_thumbnail<'o>(
             Status::NotFound
         })?;
 
-    let file_path = CONFIG.app.metadata_directory.join(&res_file.path);
+    let file_path = CONFIG
+        .app
+        .metadata_directory_absolute(&res_file.path.to_string_lossy());
 
     let mut responder = RangeResponder::from_path(&file_path).await.map_err(|e| {
         logger::error!(err = ?e, "Failed to open file");

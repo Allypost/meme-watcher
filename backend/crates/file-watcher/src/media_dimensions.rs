@@ -81,7 +81,7 @@ impl FileWatcher {
         }
 
         let file_type = db_file_metadata.file_type.unwrap_or_default();
-        let file_path = CONFIG.app.directory.join(&db_file.path);
+        let file_path = CONFIG.app.directory_absolute(&db_file.path);
 
         self.generate_media_dimensions(db_file.id, &file_type, &file_path)
             .await

@@ -13,7 +13,7 @@ use sea_orm::prelude::*;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use crate::{helpers::file::relative_to_app_dir, thumb::ThumbSize, FileWatcher};
+use crate::{thumb::ThumbSize, FileWatcher};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileMetadata {
@@ -40,7 +40,7 @@ impl FileWatcher {
 
         Ok(files
             .into_iter()
-            .map(|x| CONFIG.app.directory.join(x.path))
+            .map(|x| CONFIG.app.directory_absolute(&x.path))
             .collect())
     }
 
@@ -63,14 +63,14 @@ impl FileWatcher {
         let new_files = files_in_directory
             .clone()
             .into_iter()
-            .map(|x| relative_to_app_dir(&x))
+            .map(|x| CONFIG.app.directory_relative(x))
             .collect::<Result<HashSet<_>>>()?;
 
         logger::trace!(num_files = new_files.len(), "found files in directory");
 
         let unindexed_files = new_files
             .difference(&indexed_files)
-            .map(|x| CONFIG.app.directory.join(x))
+            .map(|x| CONFIG.app.directory_absolute(x))
             .collect::<Vec<_>>();
 
         Ok(unindexed_files)
@@ -96,7 +96,7 @@ impl FileWatcher {
 
         let removed_files = db_files
             .difference(&files)
-            .map(|x| relative_to_app_dir(x))
+            .map(|x| CONFIG.app.directory_relative(x))
             .collect::<Result<Vec<_>>>()?;
         logger::trace!(num_files = removed_files.len(), "found files to remove");
         let removed_files = Arc::new(removed_files);
@@ -142,7 +142,10 @@ impl FileWatcher {
 
             match thumb {
                 Ok(thumb) => {
-                    if let Err(e) = self.generate_blurhash(thumb.path.clone(), file.id).await {
+                    let thumb_path = CONFIG
+                        .app
+                        .metadata_directory_absolute(&thumb.path.to_string_lossy());
+                    if let Err(e) = self.generate_blurhash(thumb_path, file.id).await {
                         logger::warn!(err = ?e, ?thumb, "failed to generate blurhash");
                     }
                 }

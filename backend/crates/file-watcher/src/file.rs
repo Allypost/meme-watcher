@@ -1,16 +1,14 @@
 use std::{path::Path, time::Instant};
 
 use anyhow::{anyhow, bail, Result};
+use config::CONFIG;
 use entity::files;
 use sea_orm::{prelude::*, Condition, Set, TransactionTrait};
 use tokio::fs;
 use tracing::instrument;
 use ulid::Ulid;
 
-use crate::{
-    helpers::file::{file_hash, relative_to_app_dir},
-    FileWatcher,
-};
+use crate::{helpers::file::file_hash, FileWatcher};
 
 impl FileWatcher {
     #[instrument(skip(self))]
@@ -23,7 +21,7 @@ impl FileWatcher {
             bail!("Not a file");
         }
 
-        let file_path_rel = relative_to_app_dir(file_path)?;
+        let file_path_rel = CONFIG.app.directory_relative(file_path)?;
 
         let file_hash = {
             let now = Instant::now();

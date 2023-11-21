@@ -758,6 +758,7 @@ dependencies = [
 name = "config"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap 4.4.8",
  "lazy_static",
  "resolve-path",

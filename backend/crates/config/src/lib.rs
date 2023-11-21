@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::{
+    convert::Into,
+    path::{Path, PathBuf},
+};
 
 use clap::{ArgAction, Args, Parser};
 use lazy_static::lazy_static;
@@ -56,6 +59,13 @@ impl Config {
         {
             if !self.app.metadata_directory.exists() {
                 std::fs::create_dir_all(&self.app.metadata_directory).unwrap();
+            }
+
+            {
+                let thumbs_dir = &self.app.thumbs_directory();
+                if !thumbs_dir.exists() {
+                    std::fs::create_dir_all(thumbs_dir).unwrap();
+                }
             }
 
             assert!(
@@ -147,6 +157,49 @@ pub struct AppConfig {
         default_value = "$MEME_WATCHER__DIRECTORY/.mw_metadata"
     )]
     pub metadata_directory: PathBuf,
+}
+
+impl AppConfig {
+    #[must_use]
+    pub fn thumbs_directory(&self) -> PathBuf {
+        self.metadata_directory.join("./thumbs/")
+    }
+
+    #[must_use]
+    pub fn directory_absolute(&self, path: &str) -> PathBuf {
+        self.directory.join(path)
+    }
+
+    pub fn directory_relative(&self, path: impl AsRef<Path>) -> anyhow::Result<String> {
+        Self::relative_to(&self.directory, path)
+    }
+
+    #[must_use]
+    pub fn metadata_directory_absolute(&self, path: &str) -> PathBuf {
+        self.metadata_directory.join(path)
+    }
+
+    pub fn metadata_directory_relative(&self, path: impl AsRef<Path>) -> anyhow::Result<String> {
+        Self::relative_to(&self.metadata_directory, path)
+    }
+
+    fn relative_to(
+        to_directory: impl AsRef<Path>,
+        path: impl AsRef<Path>,
+    ) -> anyhow::Result<String> {
+        let path = path.as_ref();
+        let to_directory = to_directory.as_ref();
+
+        if path.is_absolute() {
+            path.strip_prefix(to_directory)
+                .map(|x| x.to_string_lossy().to_string())
+                .map_err(Into::into)
+        } else {
+            let abs_path = to_directory.join(path);
+            let abs_path = abs_path.try_resolve()?;
+            Self::relative_to(to_directory, abs_path)
+        }
+    }
 }
 
 #[derive(Debug, Clone, Args)]

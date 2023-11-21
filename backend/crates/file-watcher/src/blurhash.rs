@@ -35,9 +35,7 @@ impl FileWatcher {
             return Ok(file_data_blurhash.value);
         }
 
-        let file_path = CONFIG.app.directory.join(&db_file.path);
-
-        logger::trace!(path = ?file_path, "Generating blurhash");
+        let file_path = CONFIG.app.directory_absolute(&db_file.path);
 
         let hash = self.generate_blurhash(file_path, db_file.id).await?;
 
