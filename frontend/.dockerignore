@@ -1,0 +1,11 @@
+.env*
+
+.gitignore
+.dockerignore
+
+.vscode
+.fleet
+.idea
+
+.next
+node_modules

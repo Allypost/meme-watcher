@@ -1,0 +1,10 @@
+[alias]
+typeshare="run --bin typeshare"
+backend="run --bin backend"
+frontend="run --bin frontend"
+generate-entities="run --bin generate-entities"
+migrate="run --bin migrate"
+
+[build]
+target-dir=".cargo/.build"
+

@@ -1,0 +1,17 @@
+meme-watcher.loc,
+meme-watcher.saturn.ji0.li {
+	tls internal
+
+	@api {
+		path /api
+		path /api/
+		path /api/*
+	}
+	handle @api {
+		uri strip_prefix /api
+		reverse_proxy localhost:3001 {
+		}
+	}
+
+	reverse_proxy localhost:3000
+}

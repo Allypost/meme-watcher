@@ -1,0 +1,6 @@
+/dev/*
+!/dev/.gitkeep
+
+/.idea/
+/.vscode/
+/.fleet/

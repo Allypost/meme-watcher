@@ -1,0 +1,52 @@
+[[bin]]
+name = "backend"
+path = ".cargo/bin/backend.rs"
+
+[[bin]]
+name = "meme-watcher"
+path = "src/main.rs"
+
+[[bin]]
+name = "typeshare"
+path = ".cargo/bin/typeshare.rs"
+
+[[bin]]
+name = "generate-entities"
+path = ".cargo/bin/generate-entities.rs"
+
+[[bin]]
+name = "migrate"
+path = ".cargo/bin/migrate.rs"
+
+[package]
+name = "meme-watcher"
+edition = "2021"
+version = "0.1.0"
+publish = false
+default-run = "meme-watcher"
+
+[dependencies]
+dotenvy = { version = "0.15.7", features = ["clap"] }
+config = { path = "./crates/config" }
+logger = { path = "./crates/logger" }
+api = { path = "./crates/api" }
+
+[workspace]
+members = [".", "crates/*"]
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+single_match_else = "allow"
+manual_let_else = "allow"
+uninlined_format_args = "allow"
+# missing_panics_doc = "allow"
+missing_errors_doc = "allow"
+no_effect_underscore_binding = "allow"
+
+[profile.dev]
+debug-assertions = true
+
+[profile.release]
+strip = true # Automatically strip symbols from the binary.
+lto = "thin"

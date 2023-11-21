@@ -1,0 +1,36 @@
+[package]
+name = "file-watcher"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+blurhash = "0.2.0"
+chrono = { version = "0.4.31", features = ["alloc", "serde"] }
+config = { version = "0.1.0", path = "../config" }
+entity = { version = "0.1.0", path = "../entity" }
+ffmpeg = { version = "0.1.0", path = "../ffmpeg" }
+file-format = { version = "0.22.0", features = ["reader"] }
+futures = { version = "0.3.29", features = ["thread-pool"] }
+image = "0.24.7"
+infer = "0.15.0"
+logger = { version = "0.1.0", path = "../logger" }
+notify = { version = "6.1.1", default-features = false, features = ["macos_kqueue"] }
+num_cpus = "1.16.0"
+sea-orm = "0.12.6"
+serde = { version = "1.0.192", features = ["derive", "alloc"] }
+serde_json = { version = "1.0.108", features = ["alloc"] }
+sha2 = "0.10.8"
+tempfile = "3.8.1"
+tokio = { version = "1.34.0", features = ["process"] }
+tokio-stream = "0.1.14"
+tracing = "0.1.40"
+tree_magic_mini = "3.0.3"
+ulid = "1.1.0"
+walkdir = "2.4.0"
+which = "5.0.0"
+
+[lints]
+workspace = true

@@ -1,0 +1,42 @@
+---
+procs:
+  backend:
+    cmd:
+      [
+        "cargo",
+        "watch",
+        "--clear",
+        "--quiet",
+        "--watch",
+        "./src",
+        "--watch",
+        "./crates",
+        "--ignore",
+        "./crates/migration/**/*",
+        "--exec",
+        "run",
+      ]
+    cwd: backend
+
+  frontend:
+    cmd: ["pnpm", "run", "dev"]
+    env:
+      NODE_ENV: development
+    cwd: frontend
+
+  caddy:
+    cmd: ["doas", "caddy", "run", "--config", "Caddyfile"]
+
+  format-backend:
+    autostart: false
+    shell: "
+      cargo clippy --fix --allow-dirty --allow-staged --workspace --all-features --
+      && rustup run nightly cargo fmt --all
+      && cargo fmt --all 2>/dev/null
+      "
+    cwd: backend
+
+  format-frontend:
+    autostart: false
+    cmd: ["pnpm", "run", "lint", "--fix"]
+    cwd: frontend
