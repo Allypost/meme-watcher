@@ -3,7 +3,6 @@
 pub mod prelude;
 
 pub mod file_data;
-pub mod file_metadata;
 pub mod files;
 pub mod files_tags;
 pub mod tags;

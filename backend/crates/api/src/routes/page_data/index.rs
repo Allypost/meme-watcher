@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::Path};
 
-use entity::{file_data, file_metadata, files, files_tags};
+use entity::{file_data, files, files_tags};
 use rocket::{http::Status, State};
 use sea_orm::{prelude::*, IntoSimpleExpr, QueryOrder, QuerySelect};
 use serde::Serialize;
@@ -11,16 +11,6 @@ use crate::{
     helpers::{order, pagination::Pagination},
     routes::RouteList,
 };
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[typeshare]
-struct PageDataIndexItemMeta {
-    file_size: Option<String>,
-    file_type: Option<String>,
-    created: Option<String>,
-    modified: Option<String>,
-}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -47,7 +37,10 @@ impl From<&file_data::Model> for PageDataIndexItemDataItem {
 struct PageDataIndexItem {
     id: String,
     name: String,
-    meta: Option<PageDataIndexItemMeta>,
+    file_size: Option<String>,
+    file_type: Option<String>,
+    created: Option<String>,
+    modified: Option<String>,
     tags: Vec<i32>,
     data: Vec<PageDataIndexItemDataItem>,
 }
@@ -61,23 +54,16 @@ impl From<files::Model> for PageDataIndexItem {
                 .unwrap_or_default()
                 .to_string_lossy()
                 .to_string(),
+            file_size: x.file_size.map(|x| x.to_string()),
+            file_type: x.file_type,
+            created: x.file_ctime,
+            modified: x.file_mtime,
             ..Default::default()
         }
     }
 }
 
 impl PageDataIndexItem {
-    fn with_meta(mut self, meta: Option<&file_metadata::Model>) -> Self {
-        self.meta = meta.map(|x| PageDataIndexItemMeta {
-            file_size: x.file_size.map(|x| x.to_string()),
-            file_type: x.file_type.clone(),
-            created: x.file_ctime.clone(),
-            modified: x.file_mtime.clone(),
-        });
-
-        self
-    }
-
     fn with_tags(mut self, tags: Vec<i32>) -> Self {
         self.tags = tags;
         self
@@ -110,9 +96,9 @@ pub enum PageDataIndexOrderBy {
 impl PageDataIndexOrderBy {
     fn into_simple_expr(self) -> impl IntoSimpleExpr {
         match self {
-            PageDataIndexOrderBy::Modified => file_metadata::Column::FileMtime.into_simple_expr(),
-            PageDataIndexOrderBy::Created => file_metadata::Column::FileCtime.into_simple_expr(),
-            PageDataIndexOrderBy::Size => file_metadata::Column::FileSize.into_simple_expr(),
+            PageDataIndexOrderBy::Modified => files::Column::FileMtime.into_simple_expr(),
+            PageDataIndexOrderBy::Created => files::Column::FileCtime.into_simple_expr(),
+            PageDataIndexOrderBy::Size => files::Column::FileSize.into_simple_expr(),
             PageDataIndexOrderBy::Id => files::Column::Id.into_simple_expr(),
         }
     }
@@ -130,7 +116,6 @@ pub async fn index(
 
     let items = files::Entity::find()
         .order_by(order.by().into_simple_expr(), order.direction().into())
-        .find_also_related(file_metadata::Entity)
         .limit(per_page)
         .offset(pagination.offset())
         .all(db.as_ref())
@@ -147,7 +132,7 @@ pub async fn index(
 
     pagination.set_total_pages(total_items);
 
-    let file_ids = items.iter().map(|(x, _)| x.id).collect::<Vec<_>>();
+    let file_ids = items.iter().map(|x| x.id).collect::<Vec<_>>();
 
     let files_tags = files_tags::Entity::find()
         .filter(files_tags::Column::FileId.is_in(file_ids.clone()))
@@ -173,10 +158,10 @@ pub async fn index(
 
     let items = items
         .into_iter()
-        .map(|(x, meta)| {
+        .map(|x| {
             let id = x.id;
 
-            let mut item = PageDataIndexItem::from(x).with_meta(meta.as_ref());
+            let mut item = PageDataIndexItem::from(x);
 
             if let Some(tags) = files_tags.get(&id) {
                 item = item.with_tags(tags.clone());

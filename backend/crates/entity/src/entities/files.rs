@@ -14,14 +14,16 @@ pub struct Model {
     pub path: String,
     pub hash: String,
     pub created_at: String,
+    pub file_type: Option<String>,
+    pub file_size: Option<i64>,
+    pub file_ctime: Option<String>,
+    pub file_mtime: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(has_many = "super::file_data::Entity")]
     FileData,
-    #[sea_orm(has_many = "super::file_metadata::Entity")]
-    FileMetadata,
     #[sea_orm(has_many = "super::files_tags::Entity")]
     FilesTags,
 }
@@ -29,12 +31,6 @@ pub enum Relation {
 impl Related<super::file_data::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::FileData.def()
-    }
-}
-
-impl Related<super::file_metadata::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::FileMetadata.def()
     }
 }
 

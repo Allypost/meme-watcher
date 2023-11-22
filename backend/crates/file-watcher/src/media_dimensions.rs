@@ -2,7 +2,7 @@ use std::{convert::Into, path::Path};
 
 use anyhow::{anyhow, bail, Result};
 use config::CONFIG;
-use entity::{file_data, file_metadata, files};
+use entity::{file_data, files};
 use sea_orm::{prelude::*, Set};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -57,17 +57,11 @@ impl FileWatcher {
         &self,
         ulid: &str,
     ) -> Result<Option<MediaDimensions>> {
-        let (db_file, db_file_metadata) = files::Entity::find()
+        let db_file = files::Entity::find()
             .filter(files::Column::Ulid.eq(ulid.to_uppercase()))
-            .find_also_related(file_metadata::Entity)
             .one(self.db())
             .await?
             .ok_or_else(|| anyhow!("Could not find file with ulid: {}", ulid))?;
-
-        let db_file_metadata = match db_file_metadata {
-            Some(x) => x,
-            None => bail!("Could not find file metadata for file with ulid: {}", ulid),
-        };
 
         let db_file_data = file_data::Entity::find()
             .filter(file_data::Column::Key.eq(FILE_DATA_MEDIA_DIMENSIONS_KEY))
@@ -80,7 +74,7 @@ impl FileWatcher {
             return Ok(Some(dims));
         }
 
-        let file_type = db_file_metadata.file_type.unwrap_or_default();
+        let file_type = db_file.file_type.unwrap_or_default();
         let file_path = CONFIG.app.directory_absolute(&db_file.path);
 
         self.generate_media_dimensions(db_file.id, &file_type, &file_path)

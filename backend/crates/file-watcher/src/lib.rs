@@ -4,7 +4,6 @@ use sea_orm::prelude::*;
 
 pub mod blurhash;
 pub mod file;
-pub mod file_metadata;
 mod helpers;
 pub mod index;
 pub mod media_dimensions;

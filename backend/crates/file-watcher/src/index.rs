@@ -7,7 +7,7 @@ use std::{
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use config::CONFIG;
-use entity::{file_metadata, files};
+use entity::files;
 use futures::StreamExt;
 use sea_orm::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -26,11 +26,7 @@ pub struct FileMetadata {
 
 impl FileWatcher {
     pub async fn get_indexed(&self) -> Result<Vec<files::Model>> {
-        let files = files::Entity::find()
-            .filter(file_metadata::Column::Id.is_not_null())
-            .left_join(file_metadata::Entity)
-            .all(self.db())
-            .await?;
+        let files = files::Entity::find().all(self.db()).await?;
 
         Ok(files)
     }
@@ -124,8 +120,6 @@ impl FileWatcher {
         logger::debug!("Inspecting file: {:?}", file_path);
 
         let file = self.get_or_create_file(file_path).await?;
-
-        self.get_or_create_file_metadata(&file.ulid).await?;
 
         self.get_or_generate_media_dimensions(&file.ulid).await?;
 

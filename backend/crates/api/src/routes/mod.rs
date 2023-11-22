@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
+use entity::{file_data, files};
 use rocket::{http::Status, Route, State};
 use sea_orm::{prelude::*, DatabaseConnection};
 use serde_json::json;
@@ -28,16 +29,12 @@ pub fn routes(routes: &State<AppRoutes>) -> serde_json::Value {
 
 #[get("/indexed")]
 pub async fn indexed(db: &State<Arc<DatabaseConnection>>) -> Result<serde_json::Value, Status> {
-    let indexed = entity::files::Entity::find()
-        .find_with_related(entity::file_data::Entity)
-        .all(db.as_ref())
-        .await
-        .map_err(|e| {
-            logger::error!("failed to get indexed files: {}", e);
-            Status::InternalServerError
-        })?;
+    let indexed = files::Entity::find().all(db.as_ref()).await.map_err(|e| {
+        logger::error!("failed to get indexed files: {}", e);
+        Status::InternalServerError
+    })?;
 
-    let metas = entity::file_metadata::Entity::find()
+    let file_datas = file_data::Entity::find()
         .all(db.as_ref())
         .await
         .map_err(|e| {
@@ -45,32 +42,26 @@ pub async fn indexed(db: &State<Arc<DatabaseConnection>>) -> Result<serde_json::
             Status::InternalServerError
         })?
         .into_iter()
-        .fold(HashMap::new(), |mut acc, x| {
-            acc.insert(x.file_id, x);
+        .fold(HashMap::new(), |mut acc: HashMap<_, Vec<_>>, x| {
+            let value = json!({
+                "id": x.id,
+                "key": x.key,
+                "value": x.value,
+                "meta": serde_json::from_str::<serde_json::Value>(&x.meta).ok(),
+                "createdAt": x.created_at,
+            });
+            acc.entry(x.file_id).or_default().push(value);
             acc
         });
 
     Ok(serde_json::json!(indexed
         .into_iter()
-        .map(|(file, data)| {
-            let meta = metas.get(&file.id);
-            let data = data
-                .into_iter()
-                .map(|x| {
-                    json!({
-                        "id": x.id,
-                        "key": x.key,
-                        "value": x.value,
-                        "meta": serde_json::from_str::<serde_json::Value>(&x.meta).ok(),
-                        "createdAt": x.created_at,
-                    })
-                })
-                .collect::<Vec<_>>();
+        .map(|file| {
+            let data = file_datas.get(&file.id).cloned().unwrap_or_default();
 
             json!({
                 "file": file,
                 "data": data,
-                "meta": meta,
             })
         })
         .collect::<Vec<_>>()))

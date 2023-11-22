@@ -6,7 +6,7 @@ use std::{
 use anyhow::{anyhow, bail, Result};
 use chrono::{prelude::*, DateTime};
 use config::CONFIG;
-use entity::{file_data, file_metadata, files};
+use entity::{file_data, files};
 use image::{io::Reader as ImageReader, DynamicImage, GenericImageView};
 use sea_orm::{prelude::*, Condition, Set};
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,6 @@ use tracing::instrument;
 use which::which;
 
 use crate::{
-    file_metadata::FileMetadata,
     helpers::{date::parse_db_date, file::file_hash},
     FileWatcher,
 };
@@ -111,9 +110,8 @@ impl From<ThumbSize> for ThumbDimensions {
 
 impl FileWatcher {
     pub async fn get_or_generate_thumb(&self, ulid: &str, size: ThumbSize) -> Result<FileThumb> {
-        let (db_file, db_file_meta) = files::Entity::find()
+        let db_file = files::Entity::find()
             .filter(files::Column::Ulid.eq(ulid.to_uppercase()))
-            .find_also_related(file_metadata::Entity)
             .one(self.db())
             .await?
             .ok_or_else(|| anyhow!("File not found"))?;
@@ -153,16 +151,8 @@ impl FileWatcher {
 
         logger::debug!(file = ?db_file, "Thumb not found in db, generating...");
 
-        let db_file_meta = match db_file_meta {
-            Some(db_file_meta) => db_file_meta,
-            None => {
-                bail!("File metadata not found");
-            }
-        };
-
         let file_path = CONFIG.app.directory_absolute(&db_file.path);
-        let file_meta: FileMetadata = db_file_meta.try_into()?;
-        let file_type = file_meta.file_type.unwrap_or_default();
+        let file_type = db_file.file_type.unwrap_or_default();
 
         self.generate_thumbnail(db_file.id, &file_path, &file_type, size)
             .await

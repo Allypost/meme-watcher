@@ -23,13 +23,6 @@ export type PaginationResponse<T> = {
   pagination: Pagination;
 };
 
-export type PageDataIndexItemMeta = {
-  fileSize?: string;
-  fileType?: string;
-  created?: string;
-  modified?: string;
-};
-
 export type PageDataIndexItemDataItem = {
   key: string;
   value: string;
@@ -39,7 +32,10 @@ export type PageDataIndexItemDataItem = {
 export type PageDataIndexItem = {
   id: string;
   name: string;
-  meta?: PageDataIndexItemMeta;
+  fileSize?: string;
+  fileType?: string;
+  created?: string;
+  modified?: string;
   tags: number[];
   data: PageDataIndexItemDataItem[];
 };

@@ -14,7 +14,7 @@ import {
 
 const MediaItem = ({ item }: { item: PageDataIndexItem }) => {
   const itemUrl = `/api/file/serve/${item.id}`;
-  const itemMimeType = item.meta?.fileType;
+  const itemMimeType = item.fileType;
   const dimensions = item.data.find((x) => x.key === "media-dimensions")
     ?.meta as
     | {
