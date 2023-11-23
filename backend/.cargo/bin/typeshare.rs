@@ -18,14 +18,18 @@ pub fn main() {
             .map(|input| PathBuf::from_iter([dir, input]))
             .collect::<Vec<_>>();
 
-        Command::new("typeshare")
-            .args(inputs)
+        let run = Command::new("typeshare")
+            .args(&inputs)
             .args(["--lang", "typescript", "--output-file"])
-            .arg(output)
-            .current_dir(PathBuf::from(dir))
+            .arg(&output)
+            .current_dir(dir)
             .spawn()
             .unwrap()
-            .wait_with_output()
+            .wait()
             .unwrap();
+        assert!(
+            run.success(),
+            "failed to run typeshare for {inputs:?} -> {output:?}: {run:?}"
+        );
     }
 }

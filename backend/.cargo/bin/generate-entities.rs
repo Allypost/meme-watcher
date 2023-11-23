@@ -3,7 +3,7 @@ use std::{path::PathBuf, process::Command};
 pub fn main() {
     let dir = env!("CARGO_MANIFEST_DIR");
 
-    Command::new("sea-orm-cli")
+    let run = Command::new("sea-orm-cli")
         .args([
             "generate",
             "entity",
@@ -18,6 +18,7 @@ pub fn main() {
         .current_dir(PathBuf::from(dir))
         .spawn()
         .unwrap()
-        .wait_with_output()
+        .wait()
         .unwrap();
+    assert!(run.success(), "sea-orm-cli failed: {run:?}");
 }

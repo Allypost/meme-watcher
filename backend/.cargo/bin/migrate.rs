@@ -5,23 +5,21 @@ pub fn main() {
 
     let migrations_dir = dir.join("./crates/migration");
 
-    let migrations = Command::new("cargo")
+    let run = Command::new("cargo")
         .args(["run", "--", "up"])
         .current_dir(migrations_dir)
         .spawn()
         .unwrap()
-        .wait_with_output()
+        .wait()
         .unwrap();
+    assert!(run.success(), "Failed to generate entities: {run:?}");
 
-    if !migrations.status.success() {
-        panic!("Migration failed");
-    }
-
-    Command::new("cargo")
+    let run = Command::new("cargo")
         .args(["generate-entities"])
         .current_dir(dir)
         .spawn()
         .unwrap()
-        .wait_with_output()
+        .wait()
         .unwrap();
+    assert!(run.success(), "Failed to generate entities: {run:?}");
 }
