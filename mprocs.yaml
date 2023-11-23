@@ -1,21 +1,7 @@
 ---
 procs:
   backend:
-    cmd:
-      [
-        "cargo",
-        "watch",
-        "--clear",
-        "--quiet",
-        "--watch",
-        "./src",
-        "--watch",
-        "./crates",
-        "--ignore",
-        "./crates/migration/**/*",
-        "--exec",
-        "run",
-      ]
+    cmd: ["cargo", "dev"]
     cwd: backend
 
   frontend:

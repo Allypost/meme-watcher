@@ -1,6 +1,6 @@
 [[bin]]
-name = "backend"
-path = ".cargo/bin/backend.rs"
+name = "dev"
+path = ".cargo/bin/dev.rs"
 
 [[bin]]
 name = "meme-watcher"

@@ -1,6 +1,6 @@
 [alias]
 typeshare="run --bin typeshare"
-backend="run --bin backend"
+dev="run --bin dev"
 frontend="run --bin frontend"
 generate-entities="run --bin generate-entities"
 migrate="run --bin migrate"
