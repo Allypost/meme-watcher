@@ -1,28 +1,34 @@
-# Create T3 App
+# Frontend
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This is the frontend for the Meme Watcher app.
 
-## What's next? How do I make an app with this?
+For now it just displays data provided by the backend.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+It's built with NextJS, TypeScript and TailwindCSS.
+Types for the backend are automatically generated _by_ the backend.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Requirements
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+A relatively modern [NodeJS runtime](https://nodejs.org/) (20+), and [pnpm](https://pnpm.io/).
 
-## Learn More
+## Running
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+Before you run any commands, you should **copy the `.env.example` file into `.env`**.
+Edit the `.env` file with the correct values. All options should be documented in comments inside the file.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+To run the application, there are three steps:
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+1. `pnpm install` to install the dependencies
+2. `pnpm run build` to build the application
+3. `pnpm run start` to run the application
 
-## How do I deploy this?
+## Development
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+For development, eslint and prettier are used to check and format the code.
+Eslint is set up to also report the prettier issues.
+
+Run `pnpm run dev` to start the development server.
+
+To format the code use `pnpm run lint` and add the `--fix` flag to auto-fix issues.
+
+Do not edit files in the `src/types/generated` directory. Those are generated automatically and should _never_ be edited manually.

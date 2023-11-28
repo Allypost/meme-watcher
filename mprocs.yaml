@@ -11,7 +11,7 @@ procs:
     cwd: frontend
 
   caddy:
-    cmd: ["doas", "caddy", "run", "--config", "Caddyfile"]
+    cmd: ["caddy", "run", "--config", "Caddyfile"]
 
   format-backend:
     autostart: false

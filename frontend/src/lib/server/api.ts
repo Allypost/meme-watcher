@@ -1,4 +1,4 @@
-import { type Pagination } from "~/types/rust.api";
+import { type Pagination } from "@gen-types/backend/api";
 
 import { BASE_URL } from "./baseUrl";
 

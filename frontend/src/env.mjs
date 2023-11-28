@@ -8,7 +8,13 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
-    APP_BACKEND_URL: z.string().url(),
+    APP_BACKEND_URL: z
+      .string()
+      .url()
+      .refine(
+        (str) => isParsableUrl(str),
+        "The provided backend url is not a valid url",
+      ),
   },
 
   /**
@@ -18,7 +24,17 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
-    NEXT_PUBLIC_APP_URL: z.string().url(),
+    NEXT_PUBLIC_APP_URL: z
+      .string()
+      .url()
+      .refine(
+        (str) => !str.includes("YOUR-APP-URL-HERE.example"),
+        "You forgot to edit the default app url",
+      )
+      .refine(
+        (str) => isParsableUrl(str),
+        "The provided public app url is not a valid url",
+      ),
   },
 
   /**
@@ -42,3 +58,18 @@ export const env = createEnv({
    */
   emptyStringAsUndefined: true,
 });
+
+/**
+ * @param {string | URL} str
+ */
+function isParsableUrl(str) {
+  /** @type {URL} */
+  let url;
+  try {
+    url = new URL(str);
+  } catch {
+    return false;
+  }
+
+  return url.protocol === "http:" || url.protocol === "https:";
+}

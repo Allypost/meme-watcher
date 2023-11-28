@@ -3,7 +3,7 @@ import {
   type PageDataIndex,
   type PageDataIndexItem,
   type Pagination,
-} from "~/types/rust.api";
+} from "@gen-types/backend/api";
 
 import {
   BlurhashImage,

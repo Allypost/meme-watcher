@@ -1,0 +1,51 @@
+# vim: set autoindent noexpandtab tabstop=2 shiftwidth=2 syntax=caddyfile:
+YOUR-DOMAIN-HERE.tld {
+	header {
+		# disable FLoC tracking
+		Permissions-Policy interest-cohort=()
+
+		# disable clients from sniffing the media type
+		X-Content-Type-Options nosniff
+
+		# clickjacking protection
+		X-Frame-Options DENY
+
+		# keep referrer data off of HTTP connections
+		Referrer-Policy no-referrer-when-downgrade
+
+		# add some tribute headers
+		X-Clacks-Overhead "GNU Terry Pratchett"
+
+		# Disable browser XSS protection because it's possible to actually
+		# create XSS vulnerabilities using it.
+		#
+		# If you really need to support older browsers,
+		# comment out the first, and uncomment the second line.
+		X-XSS-Protection '0'
+		# X-XSS-Protection '1; mode=block'
+
+		# Remove server headers just in case
+		-Server
+		-X-Powered-By
+	}
+
+	@api {
+		path /api
+		path /api/
+		path /api/*
+	}
+	handle @api {
+		uri strip_prefix /api
+		####################################
+		#   UNLESS YOU USE THE DEFAULTS    #
+		# CHANGE THIS PORT FOR THE BACKEND #
+		####################################
+		reverse_proxy localhost:3001
+	}
+
+	#####################################
+	#   UNLESS YOU USE THE DEFAULTS     #
+	# CHANGE THIS PORT FOR THE FRONTEND #
+	#####################################
+	reverse_proxy localhost:3000
+}
